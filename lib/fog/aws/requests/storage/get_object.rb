@@ -15,6 +15,7 @@ module Fog
         #   * 'If-Unmodified-Since'<~Time> - Returns object only if it has not been modified since this time, otherwise returns 412 (Precodition Failed).
         #   * 'Range'<~String> - Range of object to download
         #   * 'versionId'<~String> - specify a particular version to retrieve
+        #   * 'query'<~Hash> - specify additional query string
         #
         # ==== Returns
         # * response<~Excon::Response>:
@@ -37,8 +38,11 @@ module Fog
           end
 
           params = { :headers => {} }
+
+          params[:query] = options.delete('query') || {}
+
           if version_id = options.delete('versionId')
-            params[:query] = {'versionId' => version_id}
+            params[:query] = params[:query].merge({'versionId' => version_id})
           end
           params[:headers].merge!(options)
           if options['If-Modified-Since']
@@ -57,7 +61,7 @@ module Fog
             :host     => "#{bucket_name}.#{@host}",
             :idempotent => true,
             :method   => 'GET',
-            :path     => CGI.escape(object_name),
+            :path     => object_name,
           }))
         end
 
