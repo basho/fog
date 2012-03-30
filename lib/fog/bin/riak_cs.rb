@@ -3,8 +3,8 @@ class RiakCS < Fog::Bin
 
     def class_for(key)
       case key
-      when :administration
-        Fog::RiakCS::Administration
+      when :users
+        Fog::RiakCS::Users
       else
         raise ArgumentError, "Unrecognized service: #{key}"
       end
@@ -13,8 +13,8 @@ class RiakCS < Fog::Bin
     def [](service)
       @@connections ||= Hash.new do |hash, key|
         hash[key] = case key
-        when :administration
-          Fog::RiakCS::Administration
+        when :users
+          Fog::RiakCS::Users
         else
           raise ArgumentError, "Unrecognized service: #{key.inspect}"
         end

@@ -1,6 +1,6 @@
 module Fog
   module RiakCS
-    class Administration 
+    class Users 
       class Real
         def create_user(email, name)
           request(
@@ -15,7 +15,7 @@ module Fog
       class Mock
         def create_user(email, name) 
           if data[:users].has_key? email
-            raise Fog::RiakCS::Administration::UserAlreadyExists, "User with email #{email} already exists."
+            raise Fog::RiakCS::Users::UserAlreadyExists, "User with email #{email} already exists."
             {}
           else
             data[:users][email] = name
