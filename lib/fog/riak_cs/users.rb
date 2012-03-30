@@ -2,13 +2,13 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'riak_cs'))
 
 module Fog
   module RiakCS
-    class Administration < Fog::Service
+    class Users < Fog::Service
 
-      class UserAlreadyExists < Fog::RiakCS::Administration::Error; end
+      class UserAlreadyExists < Fog::RiakCS::Users::Error; end
 
       recognizes :host, :path, :port, :scheme, :persistent
 
-      request_path 'fog/riak_cs/requests/administration'
+      request_path 'fog/riak_cs/requests/users'
       request :create_user 
 
       module Utils
@@ -79,7 +79,7 @@ module Fog
             if match = error.message.match(/<Code>(.*)<\/Code>(?:.*<Message>(.*)<\/Message>)?/m)
               case match[1]
               when 'UserAlreadyExists'
-                raise Fog::RiakCS::Administration.const_get(match[1]).new
+                raise Fog::RiakCS::Users.const_get(match[1]).new
               else
                 raise error
               end
