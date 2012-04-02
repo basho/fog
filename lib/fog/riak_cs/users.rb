@@ -11,19 +11,6 @@ module Fog
       request_path 'fog/riak_cs/requests/users'
       request :create_user 
 
-      module Utils
-        def configure_uri_options(options = {})
-          @host       = options[:host]       || 'localhost'
-          @persistent = options[:persistent] || true
-          @port       = options[:port]       || 8080
-          @scheme     = options[:scheme]     || 'http'
-        end
-
-        def riak_cs_uri
-          "#{@scheme}://#{@host}:#{@port}"
-        end
-      end
-
       class Mock
         include Utils
 

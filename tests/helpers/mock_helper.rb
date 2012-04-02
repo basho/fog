@@ -53,6 +53,8 @@ if Fog.mock?
     :ovirt_password                   => '123123',
     :rackspace_api_key                => 'rackspace_api_key',
     :rackspace_username               => 'rackspace_username',
+    :riak_cs_access_key_id            => 'riak_cs_access_key_id',
+    :riak_cs_secret_access_key        => 'riak_cs_secret_access_key',
     :slicehost_password               => 'slicehost_password',
     :storm_on_demand_username         => 'storm_on_demand_username',
     :storm_on_demand_password         => 'storm_on_demand_password',

@@ -5,6 +5,8 @@ class RiakCS < Fog::Bin
       case key
       when :users
         Fog::RiakCS::Users
+      when :usage
+        Fog::RiakCS::Usage
       else
         raise ArgumentError, "Unrecognized service: #{key}"
       end
@@ -15,6 +17,8 @@ class RiakCS < Fog::Bin
         hash[key] = case key
         when :users
           Fog::RiakCS::Users
+        when :usage
+          Fog::RiakCS::Usage
         else
           raise ArgumentError, "Unrecognized service: #{key.inspect}"
         end
