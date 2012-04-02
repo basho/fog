@@ -1,4 +1,4 @@
-Shindo.tests('RiakCS::Users | user requests', ['riak_cs']) do
+Shindo.tests('RiakCS::Users | user requests', ['riakcs']) do
 
   current_timestamp = Time.now.to_i
 
