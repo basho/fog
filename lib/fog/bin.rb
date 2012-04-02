@@ -17,6 +17,8 @@ module Fog
         for service in services
           begin
             service = self.class_for(service)
+            puts "#{service} #{service.requirements}"
+            puts "#{Fog.credentials.inspect}"
             availability &&= service.requirements.all? { |requirement| Fog.credentials.include?(requirement) }
           rescue ArgumentError => e
             Fog::Logger.warning(e.message)
@@ -72,7 +74,7 @@ require 'fog/bin/local'
 require 'fog/bin/bare_metal_cloud'
 require 'fog/bin/ninefold'
 require 'fog/bin/rackspace'
-require 'fog/bin/riak_cs'
+require 'fog/bin/riakcs'
 require 'fog/bin/openstack'
 require 'fog/bin/ovirt'
 require 'fog/bin/slicehost'

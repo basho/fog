@@ -1,14 +1,14 @@
-require File.expand_path(File.join(File.dirname(__FILE__), '..', 'riak_cs'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'riakcs'))
 require 'time'
 
 module Fog
   module RiakCS
     class Usage < Fog::Service
 
-      requires :riak_cs_access_key_id, :riak_cs_secret_access_key
+      requires :riakcs_access_key_id, :riakcs_secret_access_key
       recognizes :host, :path, :port, :scheme, :persistent
 
-      request_path 'fog/riak_cs/requests/usage'
+      request_path 'fog/riakcs/requests/usage'
       request :get_usage
 
       class Mock
@@ -29,11 +29,11 @@ module Fog
         end
 
         def data
-          self.class.data[riak_cs_uri]
+          self.class.data[riakcs_uri]
         end
 
         def reset_data
-          self.class.data.delete(riak_cs_uri)
+          self.class.data.delete(riakcs_uri)
         end
       end
 
@@ -46,15 +46,15 @@ module Fog
           require 'multi_xml'
 
           configure_uri_options(options)
-          @riak_cs_access_key_id     = options[:riak_cs_access_key_id]
-          @riak_cs_secret_access_key = options[:riak_cs_secret_access_key]
-          @connection_options        = options[:connection_options] || {}
-          @persistent                = options[:persistent]         || false
+          @riakcs_access_key_id     = options[:riakcs_access_key_id]
+          @riakcs_secret_access_key = options[:riakcs_secret_access_key]
+          @connection_options       = options[:connection_options] || {}
+          @persistent               = options[:persistent]         || false
 
           @connection = Fog::Storage.new(
             :provider              => 'AWS',
-            :aws_access_key_id     => @riak_cs_access_key_id,
-            :aws_secret_access_key => @riak_cs_secret_access_key,
+            :aws_access_key_id     => @riakcs_access_key_id,
+            :aws_secret_access_key => @riakcs_secret_access_key,
             :host                  => @host,
             :port                  => @port,
             :scheme                => @scheme

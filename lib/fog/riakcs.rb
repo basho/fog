@@ -11,15 +11,15 @@ module Fog
         @scheme     = options[:scheme]     || 'http'
       end
 
-      def riak_cs_uri
+      def riakcs_uri
         "#{@scheme}://#{@host}:#{@port}"
       end
     end
 
     extend Fog::Provider 
 
-    service(:users,   'riak_cs/users',   'Users')
-    service(:usage,   'riak_cs/usage',   'Usage')
+    service(:users,   'riakcs/users',   'Users')
+    service(:usage,   'riakcs/usage',   'Usage')
 
   end
 end

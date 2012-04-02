@@ -1,4 +1,4 @@
-Shindo.tests('RiakCS::Usage | usage requests', ['riak_cs']) do
+Shindo.tests('RiakCS::Usage | usage requests', ['riakcs']) do
 
   @blank_usage_format = {
     'Access' => [

@@ -1,4 +1,4 @@
-require File.expand_path(File.join(File.dirname(__FILE__), '..', 'riak_cs'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'riakcs'))
 
 module Fog
   module RiakCS
@@ -8,7 +8,7 @@ module Fog
 
       recognizes :host, :path, :port, :scheme, :persistent
 
-      request_path 'fog/riak_cs/requests/users'
+      request_path 'fog/riakcs/requests/users'
       request :create_user 
 
       class Mock
@@ -33,11 +33,11 @@ module Fog
         end
 
         def data
-          self.class.data[riak_cs_uri]
+          self.class.data[riakcs_uri]
         end
 
         def reset_data
-          self.class.data.delete(riak_cs_uri)
+          self.class.data.delete(riakcs_uri)
         end
       end
 
@@ -53,7 +53,7 @@ module Fog
           @connection_options = options[:connection_options] || {}
           @persistent         = options[:persistent]         || false
 
-          @connection = Fog::Connection.new(riak_cs_uri, @persistent, @connection_options)
+          @connection = Fog::Connection.new(riakcs_uri, @persistent, @connection_options)
         end
 
         def request(params, parse_response = true, &block) 
