@@ -66,6 +66,7 @@ def tests(mocked)
   start = Time.now.to_i
   threads = []
   Thread.main[:results] = []
+  raise "#{Fog.providers.inspect}"
   Fog.providers.each do |key, value|
     threads << Thread.new do
       Thread.main[:results] << {
