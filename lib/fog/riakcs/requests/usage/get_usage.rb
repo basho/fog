@@ -8,7 +8,7 @@ module Fog
         USAGE_BUCKET    = 'usage'
 
         def sanitize_and_convert_time(time)
-          time.iso8601.gsub(/[:-]/, '')
+          time.utc.iso8601.gsub(/[:-]/, '')
         end
 
         def format_and_types_to_path(format, types) 
