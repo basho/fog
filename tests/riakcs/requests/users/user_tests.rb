@@ -1,4 +1,4 @@
-Shindo.tests('RiakCS::Users | user requests', ['riakcs']) do
+Shindo.tests('RiakCS::Provisioning | user requests', ['riakcs']) do
 
   current_timestamp = Time.now.to_i
 
@@ -14,19 +14,19 @@ Shindo.tests('RiakCS::Users | user requests', ['riakcs']) do
     }
 
     tests("#create_user('user@example.com', 'Fog User')").formats(@user_format) do
-      Fog::RiakCS[:users].create_user("user#{current_timestamp unless Fog.mocking?}@example.com", 'Fog User').body
+      Fog::RiakCS[:provisioning].create_user("user#{current_timestamp unless Fog.mocking?}@example.com", 'Fog User').body
     end
 
   end
 
   tests('Duplicate user creation failure') do
 
-    tests("#create_user('existing@example.com', 'Fog User')").raises(Fog::RiakCS::Users::UserAlreadyExists) do
+    tests("#create_user('existing@example.com', 'Fog User')").raises(Fog::RiakCS::Provisioning::UserAlreadyExists) do
       if Fog.mocking?
-        Fog::RiakCS[:users].create_user("existing@example.com", 'Fog User')
+        Fog::RiakCS[:provisioning].create_user("existing@example.com", 'Fog User')
       else
         2.times do 
-          Fog::RiakCS[:users].create_user("existing#{current_timestamp}@example.com", 'Fog User')
+          Fog::RiakCS[:provisioning].create_user("existing#{current_timestamp}@example.com", 'Fog User')
         end
       end
     end

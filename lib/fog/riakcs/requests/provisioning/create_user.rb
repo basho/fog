@@ -1,6 +1,6 @@
 module Fog
   module RiakCS
-    class Users 
+    class Provisioning 
       class Real
         def create_user(email, name)
           request(
@@ -14,11 +14,11 @@ module Fog
 
       class Mock
         def create_user(email, name) 
-          if data[:users].has_key? email
-            raise Fog::RiakCS::Users::UserAlreadyExists, "User with email #{email} already exists."
+          if data[:provisioning].has_key? email
+            raise Fog::RiakCS::Provisioning::UserAlreadyExists, "User with email #{email} already exists."
             {}
           else
-            data[:users][email] = name
+            data[:provisioning][email] = name
             Excon::Response.new.tap do |response|
               response.status = 200
               response.headers['Content-Type'] = 'application/json'

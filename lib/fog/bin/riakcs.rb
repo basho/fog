@@ -3,8 +3,8 @@ class RiakCS < Fog::Bin
 
     def class_for(key)
       case key
-      when :users
-        Fog::RiakCS::Users
+      when :provisioning
+        Fog::RiakCS::Provisioning
       when :usage
         Fog::RiakCS::Usage
       else
@@ -15,8 +15,8 @@ class RiakCS < Fog::Bin
     def [](service)
       @@connections ||= Hash.new do |hash, key|
         hash[key] = case key
-        when :users
-          Fog::RiakCS::Users
+        when :provisioning
+          Fog::RiakCS::Provisioning
         when :usage
           Fog::RiakCS::Usage
         else
