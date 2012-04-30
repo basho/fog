@@ -34,7 +34,7 @@ module Fog
           headers = data[:headers].merge!(options)
           request({
             :body       => data[:body],
-            :expects    => [200, 204],
+            :expects    => 200,
             :headers    => headers,
             :host       => "#{bucket_name}.#{@host}",
             :idempotent => true,
