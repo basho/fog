@@ -1,16 +1,14 @@
 Shindo.tests('RiakCS::Usage | usage requests', ['riakcs']) do
 
   @blank_usage_format = {
-    'Access' => [
-      { 
-        'Errors' => [] 
-      }
-    ],
-    'Storage' => [
-      { 
-        'Errors' => [] 
-      }
-    ]
+    'Access' => { 
+      'Nodes'   => [],
+      'Errors'  => [] 
+    },
+    'Storage' => { 
+      'Samples' => [],
+      'Errors'  => [] 
+    }
   }
 
   tests('Statistics retrieval with no data returned') do 
