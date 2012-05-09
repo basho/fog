@@ -23,12 +23,12 @@ module Fog
               response.status = 200
               response.headers['Content-Type'] = 'application/json'
               response.body = {
-                "email"        => email,
-                "display_name" => name,
-                "name"         => "user123",
-                "key_id"       => "XXXXXXXXXXXXXXXXXXXX",
-                "key_secret"   => "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX==",
-                "id"           => "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+                "Email"       => email,
+                "DisplayName" => name,
+                "Name"        => "user123",
+                "KeyId"       => "XXXXXXXXXXXXXXXXXXXX",
+                "KeySecret"   => "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX==",
+                "Id"          => "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
               }
             end
           end

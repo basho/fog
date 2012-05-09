@@ -19,6 +19,18 @@ Shindo.tests('RiakCS::Provisioning | provisioning requests', ['riakcs']) do
 
   end
 
+  tests('User listing') do 
+
+    tests('retrieve a user listing').formats(@user_format) do 
+      unless Fog.mocking?
+        Fog::RiakCS[:provisioning].create_user("existing#{current_timestamp}@example.com", 'Fog User')
+      end
+
+      Fog::RiakCS[:provisioning].list_users.body.first
+    end
+
+  end
+
   tests('Duplicate user creation failure') do
 
     tests("#create_user('existing@example.com', 'Fog User')").raises(Fog::RiakCS::Provisioning::UserAlreadyExists) do
