@@ -31,6 +31,15 @@ Shindo.tests('RiakCS::Provisioning | provisioning requests', ['riakcs']) do
 
   end
 
+  tests('User retrieval') do 
+
+    tests('retrieve a user listing').formats(@user_format) do 
+      Fog::RiakCS[:provisioning].create_user("another-existing#{current_timestamp}@example.com", 'Fog User')
+      Fog::RiakCS[:provisioning].get_user("another-existing#{current_timestamp}@example.com").body
+    end
+
+  end
+
   tests('Duplicate user creation failure') do
 
     tests("#create_user('existing@example.com', 'Fog User')").raises(Fog::RiakCS::Provisioning::UserAlreadyExists) do

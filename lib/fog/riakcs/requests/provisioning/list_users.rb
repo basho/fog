@@ -1,19 +1,12 @@
 module Fog
   module RiakCS
     class Provisioning 
-      module Utils
-        PROVISIONING_BUCKET = 'riak-cs'
-        USERS_OBJECT        = 'users'
-      end
-
       class Real
         include Utils
         include MultipartUtils
 
         def list_users
-          response = @s3_connection.get_object(PROVISIONING_BUCKET, 
-                                               USERS_OBJECT, 
-                                               { 'Accept' => 'application/json' })
+          response = @s3_connection.get_object('riak-cs', 'users', { 'Accept' => 'application/json' })
 
           boundary      = extract_boundary(response.headers['Content-Type'])
           parts         = parse(response.body, boundary)

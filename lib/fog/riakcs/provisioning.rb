@@ -12,6 +12,7 @@ module Fog
       request_path 'fog/riakcs/requests/provisioning'
       request :create_user 
       request :list_users 
+      request :get_user 
 
       class Mock
         include Utils
@@ -59,7 +60,7 @@ module Fog
 
           @raw_connection = Fog::Connection.new(riakcs_uri, @persistent, @connection_options)
 
-          @s3_connection = Fog::Storage.new(
+          @s3_connection  = Fog::Storage.new(
             :provider              => 'AWS',
             :aws_access_key_id     => @riakcs_access_key_id,
             :aws_secret_access_key => @riakcs_secret_access_key,
