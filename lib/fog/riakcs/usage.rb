@@ -12,7 +12,7 @@ module Fog
       request :get_usage
 
       class Mock
-        include Fog::RiakCS::Utils
+        include Utils
 
         def self.data
           @data ||= Hash.new do |hash, key| 
@@ -38,7 +38,7 @@ module Fog
       end
 
       class Real
-        include Fog::RiakCS::Utils
+        include Utils
 
         def initialize(options = {})
           require 'mime/types'
