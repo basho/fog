@@ -1,16 +1,16 @@
-Shindo.tests('RiakCS::Provisioning | user requests', ['riakcs']) do
+Shindo.tests('RiakCS::Provisioning | provisioning requests', ['riakcs']) do
 
   current_timestamp = Time.now.to_i
 
   tests('Successful user creation') do
 
     @user_format = {
-      'email'        => String,
-      'display_name' => String,
-      'name'         => String,
-      'key_id'       => String,
-      'key_secret'   => String,
-      'id'           => String,
+      'Email'       => String,
+      'DisplayName' => String,
+      'Name'        => String,
+      'KeyId'       => String,
+      'KeySecret'   => String,
+      'Id'          => String,
     }
 
     tests("#create_user('user@example.com', 'Fog User')").formats(@user_format) do

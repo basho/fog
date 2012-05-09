@@ -53,12 +53,12 @@ module Fog
           @connection_options = options[:connection_options] || {}
           @persistent         = options[:persistent]         || false
 
-          @connection = Fog::Connection.new(riakcs_uri, @persistent, @connection_options)
+          @raw_connection = Fog::Connection.new(riakcs_uri, @persistent, @connection_options)
         end
 
         def request(params, parse_response = true, &block) 
           begin
-            response = @connection.request(params.merge!({
+            response = @raw_connection.request(params.merge!({
               :host     => @host,
               :path     => "#{@path}/#{params[:path]}",
             }), &block)
