@@ -5,8 +5,8 @@ module Fog
         include Utils
         include MultipartUtils
 
-        def get_user(email)
-          response = @s3_connection.get_object('riak-cs', 'user', { 'Accept' => 'application/json' })
+        def get_user(key_id)
+          response = @s3_connection.get_object('riak-cs', "user/#{key_id}", { 'Accept' => 'application/json' })
           response.body = MultiJson.decode(response.body)
           response
         end

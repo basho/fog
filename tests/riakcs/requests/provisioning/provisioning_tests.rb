@@ -34,8 +34,8 @@ Shindo.tests('RiakCS::Provisioning | provisioning requests', ['riakcs']) do
   tests('User retrieval') do 
 
     tests('retrieve a user listing').formats(@user_format) do 
-      Fog::RiakCS[:provisioning].create_user("another-existing#{current_timestamp}@example.com", 'Fog User')
-      Fog::RiakCS[:provisioning].get_user("another-existing#{current_timestamp}@example.com").body
+      key_id = Fog::RiakCS[:provisioning].create_user("another-existing#{current_timestamp}@example.com", 'Fog User').body['KeyId']
+      Fog::RiakCS[:provisioning].get_user(key_id).body
     end
 
   end
