@@ -2,54 +2,123 @@ Shindo.tests('RiakCS::Provisioning | provisioning requests', ['riakcs']) do
 
   current_timestamp = Time.now.to_i
 
-  tests('Successful user creation') do
+  user_format = {
+    'Email'       => String,
+    'DisplayName' => String,
+    'Name'        => String,
+    'KeyId'       => String,
+    'KeySecret'   => String,
+    'Id'          => String,
+  }
 
-    @user_format = {
-      'Email'       => String,
-      'DisplayName' => String,
-      'Name'        => String,
-      'KeyId'       => String,
-      'KeySecret'   => String,
-      'Id'          => String,
-    }
+  tests('User creation') do
 
-    tests("#create_user('user@example.com', 'Fog User')").formats(@user_format) do
-      Fog::RiakCS[:provisioning].create_user("user#{current_timestamp unless Fog.mocking?}@example.com", 'Fog User').body
+    tests('is successful').returns(String) do
+
+      # Create a user.
+      #
+      email, name = "successful_user_creation_test_#{current_timestamp}@example.com", "Fog User"
+      key_id      = Fog::RiakCS[:provisioning].create_user(email, name).body['KeyId']
+      key_id.class
+
     end
 
-  end
-
-  tests('User listing') do 
-
-    tests('retrieve a user listing').formats(@user_format) do 
-      unless Fog.mocking?
-        Fog::RiakCS[:provisioning].create_user("existing#{current_timestamp}@example.com", 'Fog User')
+    tests('fails if duplicate').raises(Fog::RiakCS::Provisioning::UserAlreadyExists) do
+      2.times do
+        email, name = "failed_duplicate_user_creation_test_#{current_timestamp}@example.com", "Fog User"
+        key_id      = Fog::RiakCS[:provisioning].create_user(email, name).body['KeyId']
       end
+    end
 
-      Fog::RiakCS[:provisioning].list_users.body.first
+    tests('fails if invalid email').raises(Fog::RiakCS::Provisioning::ServiceUnavailable) do
+      email, name = "failed_duplicate_user_creation_test_#{current_timestamp}", "Fog User"
+      key_id      = Fog::RiakCS[:provisioning].create_user(email, name).body['KeyId']
     end
 
   end
 
-  tests('User retrieval') do 
+  tests('User disable') do
 
-    tests('retrieve a user listing').formats(@user_format) do 
-      key_id = Fog::RiakCS[:provisioning].create_user("another-existing#{current_timestamp}@example.com", 'Fog User').body['KeyId']
+    tests('is successful').returns(204) do
+
+      # Create a user.
+      #
+      email, name = "successful_user_disable_test_#{current_timestamp}@example.com", "Fog User"
+      key_id      = Fog::RiakCS[:provisioning].create_user(email, name).body['KeyId']
+
+      Fog::RiakCS[:provisioning].disable_user(key_id).status
+
+    end
+
+  end
+
+  tests('User retrieval') do
+
+    tests('is successful').formats(user_format) do
+
+      # Create a user.
+      #
+      email, name = "user_retrieval_test_#{current_timestamp}@example.com", "Fog User"
+      key_id      = Fog::RiakCS[:provisioning].create_user(email, name).body['KeyId']
+
+      # Get user details.
+      #
       Fog::RiakCS[:provisioning].get_user(key_id).body
+
     end
 
   end
 
-  tests('Duplicate user creation failure') do
+  tests('User listing') do
 
-    tests("#create_user('existing@example.com', 'Fog User')").raises(Fog::RiakCS::Provisioning::UserAlreadyExists) do
-      if Fog.mocking?
-        Fog::RiakCS[:provisioning].create_user("existing@example.com", 'Fog User')
-      else
-        2.times do 
-          Fog::RiakCS[:provisioning].create_user("existing#{current_timestamp}@example.com", 'Fog User')
-        end
-      end
+    tests('sucessfully lists users').formats(user_format) do
+
+      # Create a user.
+      #
+      email, name = "user_listing_test_#{current_timestamp}@example.com", "Fog User"
+      key_id      = Fog::RiakCS[:provisioning].create_user(email, name).body['KeyId']
+
+      # Ensure the list users response contains the user that we just
+      # created.
+      #
+      Fog::RiakCS[:provisioning].list_users.body.select { |x| x['Email'] == email }.first
+
+    end
+
+    tests('successfully lists users containing no disabled users').returns(nil) do
+
+      # Create a user.
+      #
+      email, name = "user_listing_without_disabled_users_test_#{current_timestamp}@example.com", "Fog User"
+      key_id      = Fog::RiakCS[:provisioning].create_user(email, name).body['KeyId']
+
+      # Disable that user.
+      #
+      Fog::RiakCS[:provisioning].disable_user(key_id)
+
+      # Ensure the list users response does not contain the user that we
+      # just created and disabled.
+      #
+      Fog::RiakCS[:provisioning].list_users.body.select { |x| x['Email'] == email }.first
+
+    end
+
+    tests('successfully lists users containing disabled users').formats(user_format) do
+
+      # Create a user.
+      #
+      email, name = "user_listing_with_disabled_users_test_#{current_timestamp}@example.com", "Fog User"
+      key_id      = Fog::RiakCS[:provisioning].create_user(email, name).body['KeyId']
+
+      # Disable that user.
+      #
+      Fog::RiakCS[:provisioning].disable_user(key_id)
+
+      # Ensure the list users response does not contain the user that we
+      # just created and disabled.
+      #
+      Fog::RiakCS[:provisioning].list_users(:disabled => true).body.select { |x| x['Email'] == email }.first
+
     end
 
   end

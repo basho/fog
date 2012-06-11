@@ -1,11 +1,11 @@
 module Fog
   module RiakCS
-    class Provisioning 
+    class Provisioning
       class Real
         def create_user(email, name)
           request(
             :expects  => [200],
-            :method   => 'POST', 
+            :method   => 'POST',
             :path     => 'user',
             :body     => "email=#{email}&name=#{name}"
           )
@@ -13,24 +13,39 @@ module Fog
       end
 
       class Mock
-        def create_user(email, name) 
-          if data[:provisioning].has_key? email
+        def invalid_email?(email)
+          !email.include?('@')
+        end
+
+        def user_exists?(email)
+          data.detect do |key, value|
+            value[:email] == email
+          end
+        end
+
+        def create_user(email, name)
+          if invalid_email?(email)
+            raise Fog::RiakCS::Provisioning::ServiceUnavailable, "The email address you provided is not a valid."
+          end
+
+          if user_exists?(email)
             raise Fog::RiakCS::Provisioning::UserAlreadyExists, "User with email #{email} already exists."
-            {}
-          else
-            data[:provisioning][email] = name
-            Excon::Response.new.tap do |response|
-              response.status = 200
-              response.headers['Content-Type'] = 'application/json'
-              response.body = {
-                "Email"       => email,
-                "DisplayName" => name,
-                "Name"        => "user123",
-                "KeyId"       => "XXXXXXXXXXXXXXXXXXXX",
-                "KeySecret"   => "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX==",
-                "Id"          => "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-              }
-            end
+          end
+
+          key_id       = rand(1000).to_s
+          data[key_id] = { :email => email, :name => name, :status => 'enabled' }
+
+          Excon::Response.new.tap do |response|
+            response.status = 200
+            response.headers['Content-Type'] = 'application/json'
+            response.body = {
+              "Email"       => data[:email],
+              "DisplayName" => data[:name],
+              "Name"        => "user123",
+              "KeyId"       => key_id,
+              "KeySecret"   => "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX==",
+              "Id"          => "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+            }
           end
         end
       end

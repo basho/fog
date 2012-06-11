@@ -1,6 +1,6 @@
 module Fog
   module RiakCS
-    class Provisioning 
+    class Provisioning
       class Real
         include Utils
         include MultipartUtils
@@ -13,14 +13,14 @@ module Fog
       end
 
       class Mock
-        def get_user(email)
-          if name = data[:provisioning][email]
+        def get_user(key_id)
+          if user = data[key_id]
             Excon::Response.new.tap do |response|
               response.status = 200
               response.headers['Content-Type'] = 'application/json'
               response.body = {
-                "Email"       => email,
-                "DisplayName" => name,
+                "Email"       => user[:email],
+                "DisplayName" => user[:name],
                 "Name"        => "user123",
                 "KeyId"       => "XXXXXXXXXXXXXXXXXXXX",
                 "KeySecret"   => "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX==",

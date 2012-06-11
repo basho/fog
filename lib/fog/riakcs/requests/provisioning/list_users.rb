@@ -1,12 +1,13 @@
 module Fog
   module RiakCS
-    class Provisioning 
+    class Provisioning
       class Real
         include Utils
         include MultipartUtils
 
-        def list_users
-          response = @s3_connection.get_object('riak-cs', 'users', { 'Accept' => 'application/json' })
+        def list_users(options = {})
+          uri           = options[:disabled] ? "users?disabled=true" : "users"
+          response      = @s3_connection.get_object('riak-cs', uri, { 'Accept' => 'application/json' })
 
           boundary      = extract_boundary(response.headers['Content-Type'])
           parts         = parse(response.body, boundary)
@@ -19,17 +20,21 @@ module Fog
       end
 
       class Mock
-        def list_users
+        def list_users(options = {})
+          filtered_data = options[:disabled] ? data : data.reject { |key, value| value[:status] == 'disabled' }
+
           Excon::Response.new.tap do |response|
             response.status = 200
-            response.body = [{
-              "Email"       => 'email@email.com',
-              "DisplayName" => 'user',
-              "Name"        => "user123",
-              "KeyId"       => "XXXXXXXXXXXXXXXXXXXX",
-              "KeySecret"   => "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX==",
-              "Id"          => "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-            }]
+            response.body   = filtered_data.map do |key, value|
+              {
+                "Email"       => value[:email],
+                "DisplayName" => value[:name],
+                "Name"        => "user123",
+                "KeyId"       => key,
+                "KeySecret"   => "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX==",
+                "Id"          => "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+              }
+            end.compact
           end
         end
       end

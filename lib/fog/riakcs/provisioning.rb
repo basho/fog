@@ -4,26 +4,24 @@ module Fog
   module RiakCS
     class Provisioning < Fog::Service
 
-      class UserAlreadyExists < Fog::RiakCS::Provisioning::Error; end
+      class UserAlreadyExists  < Fog::RiakCS::Provisioning::Error; end
+      class ServiceUnavailable < Fog::RiakCS::Provisioning::Error; end
 
       requires :riakcs_access_key_id, :riakcs_secret_access_key
       recognizes :host, :path, :port, :scheme, :persistent
 
       request_path 'fog/riakcs/requests/provisioning'
-      request :create_user 
-      request :list_users 
-      request :get_user 
+      request :create_user
+      request :disable_user
+      request :list_users
+      request :get_user
 
       class Mock
         include Utils
 
         def self.data
-          @data ||= Hash.new do |hash, key| 
-            hash[key] = {
-              :provisioning => {
-                "existing@example.com" => "Preexisting user"
-              }
-            }
+          @data ||= Hash.new do |hash, key|
+            hash[key] = {}
           end
         end
 
@@ -31,7 +29,7 @@ module Fog
           @data = nil
         end
 
-        def initialize(options = {}) 
+        def initialize(options = {})
           configure_uri_options(options)
         end
 
@@ -70,7 +68,7 @@ module Fog
           )
         end
 
-        def request(params, parse_response = true, &block) 
+        def request(params, parse_response = true, &block)
           begin
             response = @raw_connection.request(params.merge!({
               :host     => @host,
@@ -80,6 +78,8 @@ module Fog
             if match = error.message.match(/<Code>(.*)<\/Code>(?:.*<Message>(.*)<\/Message>)?/m)
               case match[1]
               when 'UserAlreadyExists'
+                raise Fog::RiakCS::Provisioning.const_get(match[1]).new
+              when 'ServiceUnavailable'
                 raise Fog::RiakCS::Provisioning.const_get(match[1]).new
               else
                 raise error
