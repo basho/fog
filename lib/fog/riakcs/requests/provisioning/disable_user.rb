@@ -14,7 +14,7 @@ module Fog
       class Mock
         def disable_user(key_id)
           if user = data[key_id]
-            data[key_id][:status] == "disabled"
+            data[key_id][:status] = "disabled"
 
             Excon::Response.new.tap do |response|
               response.status = 204
