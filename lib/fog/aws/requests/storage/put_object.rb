@@ -34,12 +34,12 @@ module Fog
           headers = data[:headers].merge!(options)
           request({
             :body       => data[:body],
-            :expects    => 200,
+            :expects    => [200, 204],
             :headers    => headers,
             :host       => "#{bucket_name}.#{@host}",
             :idempotent => true,
             :method     => 'PUT',
-            :path       => CGI.escape(object_name)
+            :path       => object_name
           })
         end
 
