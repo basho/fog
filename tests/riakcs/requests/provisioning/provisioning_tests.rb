@@ -99,7 +99,7 @@ Shindo.tests('RiakCS::Provisioning | provisioning requests', ['riakcs']) do
       # Ensure the list users response does not contain the user that we
       # just created and disabled.
       #
-      Fog::RiakCS[:provisioning].list_users.body.select { |x| x['Email'] == email }.first
+      Fog::RiakCS[:provisioning].list_users(:status => :enabled).body.select { |x| x['Email'] == email }.first
 
     end
 
@@ -114,10 +114,10 @@ Shindo.tests('RiakCS::Provisioning | provisioning requests', ['riakcs']) do
       #
       Fog::RiakCS[:provisioning].disable_user(key_id)
 
-      # Ensure the list users response does not contain the user that we
-      # just created and disabled.
+      # Ensure the list users response contains the user that we just
+      # created and disabled.
       #
-      Fog::RiakCS[:provisioning].list_users(:disabled => true).body.select { |x| x['Email'] == email }.first
+      Fog::RiakCS[:provisioning].list_users.body.select { |x| x['Email'] == email }.first
 
     end
 

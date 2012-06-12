@@ -6,8 +6,7 @@ module Fog
         include MultipartUtils
 
         def list_users(options = {})
-          uri           = options[:disabled] ? "users?disabled=true" : "users"
-          response      = @s3_connection.get_object('riak-cs', uri, { 'Accept' => 'application/json' })
+          response      = @s3_connection.get_object('riak-cs', 'users', { 'Accept' => 'application/json', 'query' => options })
 
           boundary      = extract_boundary(response.headers['Content-Type'])
           parts         = parse(response.body, boundary)
