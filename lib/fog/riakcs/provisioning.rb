@@ -84,6 +84,8 @@ module Fog
               else
                 raise error
               end
+            else
+              raise error
             end
           end
           if !response.body.empty? && parse_response
