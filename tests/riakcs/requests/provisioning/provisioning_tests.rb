@@ -39,7 +39,7 @@ Shindo.tests('RiakCS::Provisioning | provisioning requests', ['riakcs']) do
 
   tests('User disable') do
 
-    tests('is successful').returns(204) do
+    tests('is successful').returns(200) do
 
       # Create a user.
       #
