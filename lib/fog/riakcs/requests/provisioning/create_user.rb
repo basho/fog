@@ -4,10 +4,11 @@ module Fog
       class Real
         def create_user(email, name)
           request(
-            :expects  => [200],
+            :expects  => [201],
             :method   => 'POST',
             :path     => 'user',
-            :body     => "email=#{email}&name=#{name}"
+            :body     => MultiJson.encode({ :email => email, :name => name }),
+            :headers  => { 'Content-Type' => 'application/json' }
           )
         end
       end
