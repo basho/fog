@@ -20,18 +20,19 @@ module Fog
 
       class Mock
         def list_users(options = {})
-          filtered_data = options[:disabled] ? data : data.reject { |key, value| value[:status] == 'disabled' }
+          filtered_data = options[:status] ? data.select { |key, value| value[:status] == options[:status] } : data
 
           Excon::Response.new.tap do |response|
             response.status = 200
             response.body   = filtered_data.map do |key, value|
               {
-                "Email"       => value[:email],
-                "DisplayName" => value[:name],
-                "Name"        => "user123",
-                "KeyId"       => key,
-                "KeySecret"   => "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX==",
-                "Id"          => "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+                "email"        => value[:email],
+                "display_name" => value[:name],
+                "name"         => "user123",
+                "key_id"       => key,
+                "key_secret"   => value[:key_secret],
+                "id"           => "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+                "status"       => value[:status]
               }
             end.compact
           end

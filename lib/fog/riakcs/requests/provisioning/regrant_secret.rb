@@ -5,19 +5,19 @@ module Fog
         include Utils
         include MultipartUtils
 
-        def disable_user(key_id)
-          response = @s3_connection.put_object('riak-cs', "user/#{key_id}", MultiJson.encode({ :status => 'disabled' }), { 'Content-Type' => 'application/json' })
+        def regrant_secret(key_id)
+          response = @s3_connection.put_object('riak-cs', "user/#{key_id}", MultiJson.encode({ :new_key_secret => true }), { 'Content-Type' => 'application/json' })
           response
         end
       end
 
       class Mock
-        def disable_user(key_id)
+        def regrant_secret(key_id)
           if user = data[key_id]
-            data[key_id][:status] = "disabled"
+            data[key_id][:key_secret] = rand(100).to_s
 
             Excon::Response.new.tap do |response|
-              response.status = 200
+              response.status = 204
               response.body   = nil
             end
           else

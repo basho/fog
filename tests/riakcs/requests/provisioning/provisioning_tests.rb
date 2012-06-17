@@ -53,6 +53,27 @@ Shindo.tests('RiakCS::Provisioning | provisioning requests', ['riakcs']) do
 
   end
 
+  tests('User granted new key secret') do
+
+    tests('is successful').returns(true) do
+
+      # Create a user.
+      #
+      email, name        = "successful_user_regrant_test_#{current_timestamp}@example.com", "Fog User"
+      user               = Fog::RiakCS[:provisioning].create_user(email, name).body
+      key_id, key_secret = user['key_id'], user['key_secret']
+
+      Fog::RiakCS[:provisioning].regrant_secret(key_id).status
+
+      # Verify new secret.
+      #
+      new_key_secret = Fog::RiakCS[:provisioning].get_user(key_id).body['key_secret']
+      new_key_secret != key_secret
+
+    end
+
+  end
+
   tests('User retrieval') do
 
     tests('is successful').formats(user_format) do

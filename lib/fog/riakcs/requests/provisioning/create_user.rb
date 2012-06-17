@@ -34,18 +34,20 @@ module Fog
           end
 
           key_id       = rand(1000).to_s
-          data[key_id] = { :email => email, :name => name, :status => 'enabled' }
+          key_secret   = rand(1000).to_s
+          data[key_id] = { :email => email, :name => name, :status => 'enabled', :key_secret => key_secret }
 
           Excon::Response.new.tap do |response|
             response.status = 200
             response.headers['Content-Type'] = 'application/json'
             response.body = {
-              "Email"       => data[:email],
-              "DisplayName" => data[:name],
-              "Name"        => "user123",
-              "KeyId"       => key_id,
-              "KeySecret"   => "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX==",
-              "Id"          => "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+              "email"        => data[:email],
+              "display_name" => data[:name],
+              "name"         => "user123",
+              "key_id"       => key_id,
+              "key_secret"   => key_secret,
+              "id"           => "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+              "status"       => "enabled"
             }
           end
         end
