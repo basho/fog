@@ -6,8 +6,7 @@ module Fog
         include MultipartUtils
 
         def disable_user(key_id)
-          response = @s3_connection.put_object('riak-cs', "user/#{key_id}", MultiJson.encode({ :status => 'disabled' }), { 'Content-Type' => 'application/json' })
-          response
+          @s3_connection.put_object('riak-cs', "user/#{key_id}", MultiJson.encode({ :status => 'disabled' }), { 'Content-Type' => 'application/json' })
         end
       end
 
