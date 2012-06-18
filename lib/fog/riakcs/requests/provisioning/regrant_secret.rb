@@ -6,7 +6,16 @@ module Fog
         include MultipartUtils
 
         def regrant_secret(key_id)
-          @s3_connection.put_object('riak-cs', "user/#{key_id}", MultiJson.encode({ :new_key_secret => true }), { 'Content-Type' => 'application/json' })
+          response = @s3_connection.put_object('riak-cs', "user/#{key_id}", MultiJson.encode({ :new_key_secret => true }), { 'Content-Type' => 'application/json' })
+          if !response.body.empty?
+            case response.headers['Content-Type']
+            when 'application/json'
+              response.body = MultiJson.decode(response.body)
+            when 'application/xml'
+              response.body = MultiXml.parse(response.body)
+            end
+          end
+          response
         end
       end
 

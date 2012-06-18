@@ -24,6 +24,16 @@ Shindo.tests('RiakCS::Provisioning | provisioning requests', ['riakcs']) do
 
     end
 
+    tests('is successful anonymously').returns(String) do
+
+      # Create a user.
+      #
+      email, name = "successful_anonymous_user_creation_test_#{current_timestamp}@example.com", "Fog User"
+      key_id      = Fog::RiakCS[:provisioning].create_user(email, name, :anonymous => true).body['key_id']
+      key_id.class
+
+    end
+
     tests('fails if duplicate').raises(Fog::RiakCS::Provisioning::UserAlreadyExists) do
       2.times do
         email, name = "failed_duplicate_user_creation_test_#{current_timestamp}@example.com", "Fog User"

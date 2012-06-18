@@ -2,14 +2,36 @@ module Fog
   module RiakCS
     class Provisioning
       class Real
-        def create_user(email, name)
-          request(
-            :expects  => [201],
-            :method   => 'POST',
-            :path     => 'user',
-            :body     => MultiJson.encode({ :email => email, :name => name }),
-            :headers  => { 'Content-Type' => 'application/json' }
-          )
+        def create_user(email, name, options = {})
+          payload = MultiJson.encode({ :email => email, :name => name })
+          headers = { 'Content-Type' => 'application/json' }
+
+          if(options[:anonymous])
+            request(
+              :expects => [201],
+              :method  => 'POST',
+              :path    => 'user',
+              :body    => payload,
+              :headers => headers
+            )
+          else
+            begin
+              response = @s3_connection.put_object('riak-cs', 'user', payload, headers)
+              if !response.body.empty?
+                case response.headers['Content-Type']
+                when 'application/json'
+                  response.body = MultiJson.decode(response.body)
+                when 'application/xml'
+                  response.body = MultiXml.parse(response.body)
+                end
+              end
+              response
+            rescue Excon::Errors::Conflict => e
+              raise Fog::RiakCS::Provisioning::UserAlreadyExists.new
+            rescue Excon::Errors::BadRequest => e
+              raise Fog::RiakCS::Provisioning::ServiceUnavailable.new
+            end
+          end
         end
       end
 
@@ -24,7 +46,7 @@ module Fog
           end
         end
 
-        def create_user(email, name)
+        def create_user(email, name, options = {})
           if invalid_email?(email)
             raise Fog::RiakCS::Provisioning::ServiceUnavailable, "The email address you provided is not a valid."
           end
