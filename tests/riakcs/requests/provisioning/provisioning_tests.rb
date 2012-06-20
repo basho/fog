@@ -63,6 +63,22 @@ Shindo.tests('RiakCS::Provisioning | provisioning requests', ['riakcs']) do
 
   end
 
+  tests('User enable') do
+
+    tests('is successful').returns(200) do
+
+      # Create a user.
+      #
+      email, name = "successful_user_disable_enable_test_#{current_timestamp}@example.com", "Fog User"
+      key_id      = Fog::RiakCS[:provisioning].create_user(email, name).body['key_id']
+
+      Fog::RiakCS[:provisioning].disable_user(key_id).status
+      Fog::RiakCS[:provisioning].enable_user(key_id).status
+
+    end
+
+  end
+
   tests('User granted new key secret') do
 
     tests('is successful').returns(true) do

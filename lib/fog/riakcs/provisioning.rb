@@ -13,6 +13,7 @@ module Fog
       request_path 'fog/riakcs/requests/provisioning'
       request :create_user
       request :disable_user
+      request :enable_user
       request :list_users
       request :get_user
       request :regrant_secret
