@@ -69,6 +69,42 @@ module Fog
       end
     end
 
+    module UserUtils
+      def update_riakcs_user(key_id, user)
+        response = @s3_connection.put_object('riak-cs', "user/#{key_id}", MultiJson.encode(user), { 'Content-Type' => 'application/json' })
+        if !response.body.empty?
+          case response.headers['Content-Type']
+          when 'application/json'
+            response.body = MultiJson.decode(response.body)
+          when 'application/xml'
+            response.body = MultiXml.parse(response.body)
+          end
+        end
+        response
+      end
+
+      def update_mock_user(key_id, user)
+        if data[key_id]
+          if status = user[:status]
+            data[key_id][:status] = status
+          end
+
+          if regrant = user[:new_key_secret]
+            data[key_id][:key_secret] = rand(100).to_s
+          end
+
+          Excon::Response.new.tap do |response|
+            response.status = 200
+            response.body   = data[key_id]
+          end
+        else
+          Excon::Response.new.tap do |response|
+            response.status = 403
+          end
+        end
+      end
+    end
+
     module Utils
       def configure_uri_options(options = {})
         @host       = options[:host]       || 'localhost'
@@ -82,7 +118,7 @@ module Fog
       end
     end
 
-    extend Fog::Provider 
+    extend Fog::Provider
 
     service(:provisioning, 'riakcs/provisioning', 'Provisioning')
     service(:usage,        'riakcs/usage',        'Usage')

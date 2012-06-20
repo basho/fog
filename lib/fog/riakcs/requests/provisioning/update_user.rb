@@ -6,16 +6,16 @@ module Fog
         include UserUtils
         include MultipartUtils
 
-        def disable_user(key_id)
-          update_riakcs_user(key_id, { :status => 'disabled' })
+        def update_user(key_id, user)
+          update_riakcs_user(key_id, user)
         end
       end
 
       class Mock
         include UserUtils
 
-        def disable_user(key_id)
-          update_mock_user(key_id, { :status => 'disabled' })
+        def update_user(key_id, user)
+          update_mock_user(key_id, user)
         end
       end
     end

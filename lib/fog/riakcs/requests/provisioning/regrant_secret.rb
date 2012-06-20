@@ -3,36 +3,19 @@ module Fog
     class Provisioning
       class Real
         include Utils
+        include UserUtils
         include MultipartUtils
 
         def regrant_secret(key_id)
-          response = @s3_connection.put_object('riak-cs', "user/#{key_id}", MultiJson.encode({ :new_key_secret => true }), { 'Content-Type' => 'application/json' })
-          if !response.body.empty?
-            case response.headers['Content-Type']
-            when 'application/json'
-              response.body = MultiJson.decode(response.body)
-            when 'application/xml'
-              response.body = MultiXml.parse(response.body)
-            end
-          end
-          response
+          update_riakcs_user(key_id, { :new_key_secret => true })
         end
       end
 
       class Mock
-        def regrant_secret(key_id)
-          if user = data[key_id]
-            data[key_id][:key_secret] = rand(100).to_s
+        include UserUtils
 
-            Excon::Response.new.tap do |response|
-              response.status = 204
-              response.body   = nil
-            end
-          else
-            Excon::Response.new.tap do |response|
-              response.status = 403
-            end
-          end
+        def regrant_secret(key_id)
+          update_mock_user(key_id, { :new_key_secret => true })
         end
       end
     end
