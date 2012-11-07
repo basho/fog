@@ -39,7 +39,7 @@ module Fog
 
           params = { :headers => {} }
 
-          params[:query] = options.delete('query')
+          params[:query] = options.delete('query') || {}
 
           if version_id = options.delete('versionId')
             params[:query] = params[:query].merge({'versionId' => version_id})
