@@ -14,14 +14,7 @@ class RiakCS < Fog::Bin
 
     def [](service)
       @@connections ||= Hash.new do |hash, key|
-        hash[key] = case key
-        when :provisioning
-          Fog::RiakCS::Provisioning
-        when :usage
-          Fog::RiakCS::Usage
-        else
-          raise ArgumentError, "Unrecognized service: #{key.inspect}"
-        end
+        hash[key] = class_for(key)
       end
       @@connections[service]
     end
