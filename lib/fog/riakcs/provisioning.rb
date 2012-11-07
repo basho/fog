@@ -23,9 +23,7 @@ module Fog
         include Utils
 
         def self.data
-          @data ||= Hash.new do |hash, key|
-            hash[key] = {}
-          end
+          @data ||= Hash.new({})
         end
 
         def self.reset
