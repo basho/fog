@@ -73,7 +73,7 @@ module Fog
 
         def request(params, parse_response = true, &block)
           begin
-            response = @raw_connection.request(params.merge!({
+            response = @raw_connection.request(params.merge({
               :host     => @host,
               :path     => "#{@path}/#{params[:path]}",
             }), &block)
