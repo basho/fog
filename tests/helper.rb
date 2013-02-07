@@ -15,15 +15,11 @@ def array_differences(array_a, array_b)
 end
 
 # check to see which credentials are available and add others to the skipped tags list
-<<<<<<< HEAD
-all_providers = ['aws', 'bluebox', 'brightbox', 'cloudstack', 'dnsimple', 'dnsmadeeasy', 'dynect', 'ecloud', 'glesys', 'gogrid', 'google', 'hp', 'linode', 'local', 'ninefold', 'newservers', 'openstack', 'rackspace', 'riak_cs', 'stormondemand', 'voxel', 'xenserver', 'zerigo']
-=======
 all_providers = Fog.registered_providers.map {|provider| provider.downcase}
 
 # Manually remove these providers since they are local applications, not lacking credentials
 all_providers = all_providers - ["libvirt", "virtualbox", "vmfusion"]
 
->>>>>>> oldorigin
 available_providers = Fog.available_providers.map {|provider| provider.downcase}
 
 unavailable_providers = all_providers - available_providers
