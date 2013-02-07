@@ -36,6 +36,23 @@ Shindo.tests('Fog::Rackspace::LoadBalancers | load_balancer', ['rackspace']) do
         returns(false) { @instance.connection_logging }
       end
 
+   @instance.wait_for { ready? }
+      tests('#enable_content_caching').succeeds do
+        @instance.enable_content_caching
+        returns(true) { @instance.content_caching }
+      end
+
+      tests('#enable_content_caching after reload').succeeds do
+        @instance.reload
+        returns(true) { @instance.content_caching }
+      end
+
+      @instance.wait_for { ready? }
+      tests('#disable_content_caching').succeeds do
+        @instance.disable_content_caching
+        returns(false) { @instance.content_caching }
+      end
+
       tests('#usage').succeeds do
         @instance.usage
       end
@@ -122,6 +139,26 @@ Shindo.tests('Fog::Rackspace::LoadBalancers | load_balancer', ['rackspace']) do
       @instance.wait_for { ready? }
       tests("#reset_error_page").succeeds do
         @instance.reset_error_page
+      end
+
+      @instance.wait_for { ready? }
+      tests("#ssl_termination is nil").returns(nil) do
+        @instance.ssl_termination
+      end
+
+      @instance.wait_for { ready? }
+      tests("#enable_ssl_termination(443, PRIVATE_KEY, CERTIFICATE").succeeds do
+        @instance.enable_ssl_termination(443, PRIVATE_KEY, CERTIFICATE)
+      end
+
+      @instance.wait_for { ready? }
+      tests("#ssl_termination").succeeds do
+        @instance.ssl_termination
+      end
+
+      @instance.wait_for { ready? }
+      tests("#disable_ssl_termination").succeeds do
+        @instance.disable_ssl_termination
       end
 
       @instance.wait_for { ready? }

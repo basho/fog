@@ -4,9 +4,12 @@ require 'fog/compute'
 module Fog
   module Compute
     class AWS < Fog::Service
+      extend Fog::AWS::CredentialFetcher::ServiceMethods
 
       requires :aws_access_key_id, :aws_secret_access_key
-      recognizes :endpoint, :region, :host, :path, :port, :scheme, :persistent, :aws_session_token
+      recognizes :endpoint, :region, :host, :path, :port, :scheme, :persistent, :aws_session_token, :use_iam_profile, :aws_credentials_expire_at, :instrumentor, :instrumentor_name, :version
+
+      secrets    :aws_secret_access_key, :hmac, :aws_session_token
 
       model_path 'fog/aws/models/compute'
       model       :address
@@ -62,6 +65,7 @@ module Fog
       request :create_tags
       request :create_volume
       request :create_vpc
+      request :copy_snapshot
       request :delete_dhcp_options
       request :delete_internet_gateway
       request :delete_key_pair
@@ -110,6 +114,7 @@ module Fog
       request :modify_instance_attribute
       request :modify_network_interface_attribute
       request :modify_snapshot_attribute
+      request :modify_volume_attribute
       request :purchase_reserved_instances_offering
       request :reboot_instances
       request :release_address
@@ -135,6 +140,7 @@ module Fog
       end
 
       class Mock
+        include Fog::AWS::CredentialFetcher::ConnectionMethods
 
         def self.data
           @data ||= Hash.new do |hash, region|
@@ -194,7 +200,11 @@ module Fog
                 :tags => {},
                 :tag_sets => Hash.new do |tag_set_hash, resource_id|
                   tag_set_hash[resource_id] = {}
-                end
+                end,
+                :subnets => [],
+                :vpcs => [],
+                :dhcp_options => [],
+                :internet_gateways => []
               }
             end
           end
@@ -204,12 +214,15 @@ module Fog
           @data = nil
         end
 
-        def initialize(options={})
-          @aws_access_key_id = options[:aws_access_key_id]
+        attr_accessor :region
 
+        def initialize(options={})
+          @use_iam_profile = options[:use_iam_profile]
+          @aws_credentials_expire_at = Time::now + 20
+          setup_credentials(options)
           @region = options[:region] || 'us-east-1'
 
-          unless ['ap-northeast-1', 'ap-southeast-1', 'eu-west-1', 'us-east-1', 'us-west-1', 'us-west-2', 'sa-east-1'].include?(@region)
+          unless ['ap-northeast-1', 'ap-southeast-1', 'ap-southeast-2', 'eu-west-1', 'us-east-1', 'us-west-1', 'us-west-2', 'sa-east-1'].include?(@region)
             raise ArgumentError, "Unknown region: #{@region.inspect}"
           end
         end
@@ -268,10 +281,14 @@ module Fog
 
           resources
         end
+
+        def setup_credentials(options)
+          @aws_access_key_id = options[:aws_access_key_id]
+        end
       end
 
       class Real
-
+        include Fog::AWS::CredentialFetcher::ConnectionMethods
         # Initialize connection to EC2
         #
         # ==== Notes
@@ -298,12 +315,13 @@ module Fog
         def initialize(options={})
           require 'fog/core/parser'
 
-          @aws_access_key_id      = options[:aws_access_key_id]
-          @aws_secret_access_key  = options[:aws_secret_access_key]
-          @aws_session_token      = options[:aws_session_token]
+          @use_iam_profile = options[:use_iam_profile]
+          setup_credentials(options)
           @connection_options     = options[:connection_options] || {}
-          @hmac                   = Fog::HMAC.new('sha256', @aws_secret_access_key)
           @region                 = options[:region] ||= 'us-east-1'
+          @instrumentor           = options[:instrumentor]
+          @instrumentor_name      = options[:instrumentor_name] || 'fog.aws.compute'
+          @version                = options[:version]     ||  '2012-12-01'
 
           if @endpoint = options[:endpoint]
             endpoint = URI.parse(@endpoint)
@@ -326,8 +344,17 @@ module Fog
         end
 
         private
+        def setup_credentials(options)
+          @aws_access_key_id      = options[:aws_access_key_id]
+          @aws_secret_access_key  = options[:aws_secret_access_key]
+          @aws_session_token      = options[:aws_session_token]
+          @aws_credentials_expire_at = options[:aws_credentials_expire_at]
+
+          @hmac                   = Fog::HMAC.new('sha256', @aws_secret_access_key)
+        end
 
         def request(params)
+          refresh_credentials_if_expired
           idempotent  = params.delete(:idempotent)
           parser      = params.delete(:parser)
 
@@ -340,12 +367,21 @@ module Fog
               :host               => @host,
               :path               => @path,
               :port               => @port,
-              :version            => '2012-03-01'
+              :version            => @version
             }
           )
 
-          begin
-            response = @connection.request({
+          if @instrumentor
+            @instrumentor.instrument("#{@instrumentor_name}.request", params) do
+              _request(body, idempotent, parser)
+            end
+          else
+            _request(body, idempotent, parser)
+          end
+        end
+
+        def _request(body, idempotent, parser)
+          @connection.request({
               :body       => body,
               :expects    => 200,
               :headers    => { 'Content-Type' => 'application/x-www-form-urlencoded' },
@@ -354,20 +390,17 @@ module Fog
               :method     => 'POST',
               :parser     => parser
             })
-          rescue Excon::Errors::HTTPStatusError => error
-            if match = error.message.match(/<Code>(.*)<\/Code><Message>(.*)<\/Message>/)
-              raise case match[1].split('.').last
-              when 'NotFound', 'Unknown'
-                Fog::Compute::AWS::NotFound.slurp(error, match[2])
-              else
-                Fog::Compute::AWS::Error.slurp(error, "#{match[1]} => #{match[2]}")
-              end
-            else
-              raise error
-            end
+        rescue Excon::Errors::HTTPStatusError => error
+          if match = error.message.match(/<Code>(.*)<\/Code><Message>(.*)<\/Message>/)
+            raise case match[1].split('.').last
+                  when 'NotFound', 'Unknown'
+                    Fog::Compute::AWS::NotFound.slurp(error, match[2])
+                  else
+                    Fog::Compute::AWS::Error.slurp(error, "#{match[1]} => #{match[2]}")
+                  end
+          else
+            raise error
           end
-
-          response
         end
 
       end

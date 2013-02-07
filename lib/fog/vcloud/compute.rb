@@ -11,7 +11,7 @@ module Fog
       end
 
       def check_href!(opts = {})
-        self.href = connection.default_vdc_href unless href
+        self.href = service.default_vdc_href unless href
         unless href
           if opts.is_a?(String)
             t = Hash.new
@@ -61,7 +61,7 @@ module Fog
         class_eval <<-EOS, __FILE__,__LINE__
           def #{item}
             load_unless_loaded!
-            connection.get_#{item}(link_up[:href])
+            service.get_#{item}(link_up[:href])
           end
         EOS
       end
@@ -112,8 +112,11 @@ module Fog
       request :configure_network_ip
       request :configure_vapp
       request :configure_vm_memory
+      request :configure_vm_cpus
+      request :configure_org_network
       request :configure_vm_name_description
       request :configure_vm_disks
+      request :configure_vm_password
       request :delete_vapp
       request :get_catalog_item
       request :get_customization_options
@@ -188,12 +191,12 @@ module Fog
           @username  = options[:vcloud_username]
           @password  = options[:vcloud_password]
           @host      = options[:vcloud_host]
-          @vdc_href  = options[:vcloud_default_vdc]
           @base_path = options[:vcloud_base_path]   || Fog::Vcloud::Compute::BASE_PATH
           @version   = options[:vcloud_version]     || Fog::Vcloud::Compute::DEFAULT_VERSION
           @path      = options[:vcloud_path]        || "#{@base_path}/v#{@version}"
           @port      = options[:vcloud_port]        || Fog::Vcloud::Compute::PORT
           @scheme    = options[:vcloud_scheme]      || Fog::Vcloud::Compute::SCHEME
+          @vdc_href  = options[:vcloud_default_vdc]
         end
 
         def reload
@@ -201,22 +204,19 @@ module Fog
         end
 
         def default_organization_uri
-          @default_organization_uri ||= begin
-            unless @login_results
-              do_login
-            end
-            case @login_results.body[:Org]
-            when Array
-              @login_results.body[:Org].first[:href]
-            when Hash
-              @login_results.body[:Org][:href]
-            else
-              nil
-            end
-          end
+          @default_organization_uri ||= organizations.first.href
+          @default_organization_uri
         end
 
         def default_vdc_href
+          if @vdc_href.nil?
+            unless @login_results
+              do_login
+            end
+            org = organizations.first
+            vdc = get_organization(org.href).links.find { |item| item[:type] == 'application/vnd.vmware.vcloud.vdc+xml'}
+            @vdc_href = vdc[:href]
+          end
           @vdc_href
         end
 
@@ -356,9 +356,9 @@ module Fog
           def get_#{type}(uri)
             Fog::Vcloud::Compute::#{type.to_s.capitalize}.new(
               self.request(basic_request_params(uri)).body.merge(
-                :connection => self,
+                :service => self,
                 :collection => Fog::Vcloud::Compute::#{type.to_s.capitalize}s.new(
-                  :connection => self
+                  :service => self
                 )
               )
             )

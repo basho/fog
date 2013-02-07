@@ -1,4 +1,4 @@
-Shindo.tests('Fog::Compute[:hp] | address requests', [:hp]) do
+Shindo.tests("Fog::Compute[:hp] | address requests", ['hp', 'address']) do
 
   @floating_ips_format = {
     'instance_id' => Fog::Nullable::Integer,
@@ -7,7 +7,7 @@ Shindo.tests('Fog::Compute[:hp] | address requests', [:hp]) do
     'id'          => Integer
   }
 
-  @base_image_id = ENV["BASE_IMAGE_ID"] ||= 1242
+  @base_image_id = ENV["BASE_IMAGE_ID"] || 1242
 
   tests('success') do
 
@@ -31,9 +31,9 @@ Shindo.tests('Fog::Compute[:hp] | address requests', [:hp]) do
 
     tests("#associate_address('#{@server.id}', '#{@ip_address}')").succeeds do
       Fog::Compute[:hp].associate_address(@server.id, @ip_address)
-      tests("#get_address").returns(@server.id, "associated to valid instance id") do
-        pending if Fog.mocking?
-        Fog::Compute[:hp].get_address(@address_id).body['floating_ip']['instance_id']
+      tests("#get_address").returns(@ip_address, "server has associated ip address") do
+        @server.reload
+        @server.addresses['private'][1]['addr']
       end
     end
 

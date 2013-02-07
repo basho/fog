@@ -16,8 +16,15 @@ module Fog
       class Mock
 
         def list_roles
+          if self.data[:roles].empty?
+            ['admin', 'Member'].each do |name|
+              id = Fog::Mock.random_hex(32)
+              self.data[:roles][id] = {'id' => id, 'name' => name}
+            end
+          end
+
           Excon::Response.new(
-            :body   => { 'roles' => self.data[:roles] },
+            :body   => { 'roles' => self.data[:roles].values },
             :status => 200
           )
         end

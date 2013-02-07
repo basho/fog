@@ -21,7 +21,7 @@ module Fog
         # * 'subnetId'<~String> - The Subnet's ID
         # * 'state'<~String> - The current state of the Subnet. ['pending', 'available']
         # * 'cidrBlock'<~String> - The CIDR block the Subnet covers.
-        # * 'AvailableIpAddressCount'<~Integer> - The number of unused IP addresses in the subnet (the IP addresses for any stopped 
+        # * 'AvailableIpAddressCount'<~Integer> - The number of unused IP addresses in the subnet (the IP addresses for any stopped
         #   instances are considered unavailable)
         # * 'AvailabilityZone'<~String> - The Availability Zone the subnet is in
         # * 'tagSet'<~Array>: Tags assigned to the resource.
@@ -39,25 +39,26 @@ module Fog
 
         end
       end
-      
+
       class Mock
         def create_subnet(vpcId, cidrBlock, options = {})
           av_zone = options['AvailabilityZone'].nil? ? 'us-east-1c' : options['AvailabilityZone']
           Excon::Response.new.tap do |response|
             if cidrBlock  && vpcId
               response.status = 200
-            
+              self.data[:subnets].push({
+                'subnetId'                 => Fog::AWS::Mock.request_id,
+                'state'                    => 'pending',
+                'vpcId'                    => vpcId,
+                'cidrBlock'                => cidrBlock,
+                'availableIpAddressCount'  => "255",
+                'availabilityZone'         => av_zone,
+                'tagSet'                   => {}
+              })
+
               response.body = {
                 'requestId'    => Fog::AWS::Mock.request_id,
-                'subnetSet'    => [
-                  'subnetId'                 => Fog::AWS::Mock.request_id,
-                  'state'                    => 'pending',
-                  'vpcId'                    => Fog::AWS::Mock.request_id,
-                  'cidrBlock'                => cidrBlock,
-                  'availableIpAddressCount'  => 16,
-                  'availabilityZone'         => av_zone,
-                  'tagSet'                   => {}
-                ]
+                'subnetSet'    => self.data[:subnets]
               }
             else
               response.status = 400

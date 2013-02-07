@@ -10,6 +10,7 @@ module Fog
         attribute :description,     :aliases => 'groupDescription'
         attribute :group_id,        :aliases => 'groupId'
         attribute :ip_permissions,  :aliases => 'ipPermissions'
+        attribute :ip_permissions_egress,  :aliases => 'ipPermissionsEgress'
         attribute :owner_id,        :aliases => 'ownerId'
         attribute :vpc_id,          :aliases => 'vpcId'
 
@@ -40,11 +41,11 @@ module Fog
         #
 
         def authorize_group_and_owner(group, owner = nil)
-          Fog::Logger.deprecation("authorize_group_and_ownder is deprecated, use authorize_port_range with :group option instead")
+          Fog::Logger.deprecation("authorize_group_and_owner is deprecated, use authorize_port_range with :group option instead")
 
           requires_one :name, :group_id
 
-          connection.authorize_security_group_ingress(
+          service.authorize_security_group_ingress(
             name,
             'GroupId'                    => group_id,
             'SourceSecurityGroupName'    => group,
@@ -100,7 +101,7 @@ module Fog
             ]
           end
 
-          connection.authorize_security_group_ingress(
+          service.authorize_security_group_ingress(
             name,
             'GroupId'       => group_id,
             'IpPermissions' => [ ip_permission ]
@@ -120,9 +121,9 @@ module Fog
           requires_one :name, :group_id
 
           if group_id.nil?
-            connection.delete_security_group(name)
+            service.delete_security_group(name)
           else
-            connection.delete_security_group(nil, group_id)
+            service.delete_security_group(nil, group_id)
           end
           true
         end
@@ -158,7 +159,7 @@ module Fog
 
           requires_one :name, :group_id
 
-          connection.revoke_security_group_ingress(
+          service.revoke_security_group_ingress(
             name,
             'GroupId'                    => group_id,
             'SourceSecurityGroupName'    => group,
@@ -214,7 +215,7 @@ module Fog
             ]
           end
 
-          connection.revoke_security_group_ingress(
+          service.revoke_security_group_ingress(
             name,
             'GroupId'       => group_id,
             'IpPermissions' => [ ip_permission ]
@@ -234,7 +235,7 @@ module Fog
 
         def save
           requires :description, :name
-          data = connection.create_security_group(name, description, vpc_id).body
+          data = service.create_security_group(name, description, vpc_id).body
           new_attributes = data.reject {|key,value| key == 'requestId'}
           merge_attributes(new_attributes)
           true
@@ -242,11 +243,26 @@ module Fog
 
         private
 
-        def group_info(group_str)
-          account, group = group_str.split(":")
-
-          if account.empty? || group.nil? || group.empty?
-            raise ArgumentError, "group must be specified in form of \"<account id>:<group name or id>\", #{group_str} given"
+        #
+        # +group_arg+ may be a string or a hash with one key & value.
+        #
+        # If group_arg is a string, it is assumed to be the group name,
+        # and the UserId is assumed to be self.owner_id.
+        #
+        # The "account:group" form is deprecated.
+        #
+        # If group_arg is a hash, the key is the UserId and value is the group.
+        def group_info(group_arg)
+          if Hash === group_arg
+            account = group_arg.keys.first
+            group   = group_arg.values.first
+          elsif group_arg.match(/:/)
+            account, group = group_arg.split(':')
+            Fog::Logger.deprecation("'account:group' argument is deprecated. Use {account => group} or just group instead")
+          else
+            requires :owner_id
+            account = owner_id
+            group = group_arg
           end
 
           info = { 'UserId' => account }

@@ -1,7 +1,9 @@
 require 'fog/core'
-
+require 'fog/aws/credential_fetcher'
+require 'fog/aws/signaturev4'
 module Fog
   module AWS
+    COMPLIANT_BUCKET_NAMES = /^(?:[a-z]|\d(?!\d{0,2}(?:\.\d{1,3}){3}$))(?:[a-z0-9]|\-(?![\.])){1,61}[a-z0-9]$/
 
     extend Fog::Provider
 
@@ -16,6 +18,7 @@ module Fog
     service(:elasticache,     'aws/elasticache',      'Elasticache')
     service(:elb,             'aws/elb',              'ELB')
     service(:emr,             'aws/emr',              'EMR')
+    service(:glacier,         'aws/glacier',          'Glacier')
     service(:iam,             'aws/iam',              'IAM')
     service(:rds,             'aws/rds',              'RDS')
     service(:ses,             'aws/ses',              'SES')
@@ -184,6 +187,10 @@ module Fog
           ip << Fog::Mock.random_numbers(rand(3) + 1).to_i.to_s # remove leading 0
         end
         ip.join('.')
+      end
+
+      def self.private_ip_address
+        ip_address.gsub(/^\d{1,3}\./,"10.")
       end
 
       def self.kernel_id

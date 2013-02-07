@@ -41,24 +41,22 @@ module Fog
           }.merge!(params))
         end
       end
-      
+
       class Mock
         def describe_subnets(filters = {})
-          Excon::Response.new.tap do |response|
-            response.status = 200
-            response.body = {
-              'requestId'  => Fog::AWS::Mock.request_id,
-              'subnetSet'  => [
-                'subnetId'                 => Fog::AWS::Mock.request_id,
-                'state'                    => 'pending',
-                'vpcId'                    => Fog::AWS::Mock.request_id,
-                'cidrBlock'                => '10.255.255.0/24',
-                'availableIpAddressCount'  => 255,
-                'availabilityZone'         => 'us-east-1c',
-                'tagSet'                   => {}
-              ]
-            }
+          subnets = self.data[:subnets]
+
+          if filters['subnet-id']
+            subnets = subnets.reject {|subnet| subnet['subnetId'] != filters['subnet-id']}
           end
+
+          Excon::Response.new(
+            :status => 200,
+            :body   => {
+              'requestId' => Fog::AWS::Mock.request_id,
+              'subnetSet' => subnets
+            }
+          )
         end
       end
     end

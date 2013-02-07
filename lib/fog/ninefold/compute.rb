@@ -8,6 +8,7 @@ module Fog
       API_URL = "http://api.ninefold.com/compute/v1.0/"
 
       requires :ninefold_compute_key, :ninefold_compute_secret
+      recognizes :ninefold_api_url  # allow us to specify non-prod environments
 
       model_path 'fog/ninefold/models/compute'
       model       :server
@@ -59,6 +60,14 @@ module Fog
       request :create_ip_forwarding_rule
       request :delete_ip_forwarding_rule
       request :list_ip_forwarding_rules
+      # Load Balancers
+      request :create_load_balancer_rule
+      request :delete_load_balancer_rule
+      request :remove_from_load_balancer_rule
+      request :assign_to_load_balancer_rule
+      request :list_load_balancer_rules
+      request :list_load_balancer_rule_instances
+      request :update_load_balancer_rule
 
       class Mock
 

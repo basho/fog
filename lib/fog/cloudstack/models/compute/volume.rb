@@ -39,7 +39,7 @@ module Fog
             'snapshotid'     => snapshot_id,
             'projectid'      => project_id
           }
-          data = connection.create_volume(options)
+          data = service.create_volume(options)
           merge_attributes(data['createvolumeresponse'])
         end
 
@@ -48,13 +48,13 @@ module Fog
         end
 
         def flavor
-          connection.disk_offerings.get(self.disk_offering_id)
+          service.disk_offerings.get(self.disk_offering_id)
         end
         alias disk_offering flavor
 
         def server
           if server_id
-            connection.servers.get(server_id)
+            service.servers.get(server_id)
           end
         end
 
@@ -86,31 +86,27 @@ module Fog
           end
 
           options = {
-            'id' => id,
+            'id'               => id,
             'virtualmachineid' => instance_id,
           }
           options.merge!('deviceid' => mountpoint) if mountpoint
 
-          data = connection.attach_volume(options)
+          data = service.attach_volume(options)
 
-          Job.new(data["attachvolumeresponse"]).tap do |job|
-            job.connection= self.connection
-          end
+					service.jobs.new(data["attachvolumeresponse"])
         end
 
         def detach
           requires :id
 
-          data = connection.detach_volume('id' => id)
+          data = service.detach_volume('id' => id)
 
-          Job.new(data["detachvolumeresponse"]).tap do |job|
-            job.connection= self.connection
-          end
+          service.jobs.new(data["detachvolumeresponse"])
         end
 
         def destroy
           requires :id
-          connection.delete_volume('id' => id)
+          service.delete_volume('id' => id)
           true
         end
       end # Volume

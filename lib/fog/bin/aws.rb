@@ -25,6 +25,8 @@ class AWS < Fog::Bin
         Fog::AWS::ELB
       when :emr
         Fog::AWS::EMR
+      when :glacier
+        Fog::AWS::Glacier
       when :iam
         Fog::AWS::IAM
       when :sdb, :simpledb
@@ -77,6 +79,8 @@ class AWS < Fog::Bin
           Fog::AWS::ELB.new
         when :emr
           Fog::AWS::EMR.new
+        when :glacier
+          Fog::AWS::Glacier.new
         when :iam
           Fog::AWS::IAM.new
         when :rds

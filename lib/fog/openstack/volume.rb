@@ -6,9 +6,10 @@ module Fog
 
       requires :openstack_auth_url
       recognizes :openstack_auth_token, :openstack_management_url, :persistent,
-                 :openstack_service_name, :openstack_tenant,
+                 :openstack_service_type, :openstack_service_name, :openstack_tenant,
                  :openstack_api_key, :openstack_username,
-                 :current_user, :current_tenant
+                 :current_user, :current_tenant,
+                 :openstack_endpoint_type
 
       model_path 'fog/openstack/models/volume'
 
@@ -48,6 +49,16 @@ module Fog
         def initialize(options={})
           require 'multi_json'
           @openstack_username = options[:openstack_username]
+          @openstack_tenant   = options[:openstack_tenant]
+          @openstack_auth_uri = URI.parse(options[:openstack_auth_url])
+
+          @auth_token = Fog::Mock.random_base64(64)
+          @auth_token_expiration = (Time.now.utc + 86400).iso8601
+
+          management_url = URI.parse(options[:openstack_auth_url])
+          management_url.port = 8776
+          management_url.path = '/v1'
+          @openstack_management_url = management_url.to_s
 
           @data ||= { :users => {} }
           unless @data[:users].find {|u| u['name'] == options[:openstack_username]}
@@ -101,8 +112,10 @@ module Fog
           @openstack_auth_uri             = URI.parse(options[:openstack_auth_url])
           @openstack_management_url       = options[:openstack_management_url]
           @openstack_must_reauthenticate  = false
-          @openstack_service_name         = options[:openstack_service_name] || ['volume']
+          @openstack_service_type         = options[:openstack_service_type] || ['volume']
+          @openstack_service_name         = options[:openstack_service_name]
 
+          @openstack_endpoint_type        = options[:openstack_endpoint_type] || 'adminURL'
           @connection_options = options[:connection_options] || {}
 
           @current_user = options[:current_user]
@@ -132,6 +145,7 @@ module Fog
             response = @connection.request(params.merge({
               :headers  => {
                 'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
                 'X-Auth-Token' => @auth_token
               }.merge!(params[:headers] || {}),
               :host     => @host,
@@ -164,15 +178,16 @@ module Fog
         private
 
         def authenticate
-          if @openstack_must_reauthenticate || @openstack_auth_token.nil?
+          if !@openstack_management_url || @openstack_must_reauthenticate
             options = {
               :openstack_tenant   => @openstack_tenant,
               :openstack_api_key  => @openstack_api_key,
               :openstack_username => @openstack_username,
               :openstack_auth_uri => @openstack_auth_uri,
               :openstack_auth_token => @openstack_auth_token,
+              :openstack_service_type => @openstack_service_type,
               :openstack_service_name => @openstack_service_name,
-              :openstack_endpoint_type => 'adminURL'
+              :openstack_endpoint_type => @openstack_endpoint_type
             }
 
             credentials = Fog::OpenStack.authenticate_v2(options, @connection_options)

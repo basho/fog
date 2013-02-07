@@ -15,38 +15,64 @@ def compute_providers
     },
     :brightbox  => {
       :server_attributes => {
-        :image_id => 'img-wwgbb' # Ubuntu Lucid 10.04 server (i686)
+        :image_id => Brightbox::Compute::TestSupport.image_id
       },
       :mocked => false
     },
-    :openstack => {
-      :mocked => true,
+    :ecloud => {
       :server_attributes => {
-        :flavor_ref => 2,
-        :image_ref  => "0e09fbd6-43c5-448a-83e9-0d3d05f9747e",
-        :name       => "fog_#{Time.now.to_i}"
-      }
+        :name                 => "eugene",
+        :row                  => "eugene1",
+        :group                => "eugene-104",
+        :catalog_network_name => "bridged",
+        :description          => "blarg",
+        :operating_system => {
+          :name =>  "Red Hat Enterprise Linux 5 (64-bit)",
+          :href => "/cloudapi/ecloud/operatingsystems/rhel5_64guest/computepools/963",
+        },
+      }.tap do |hash|
+        [:template_href, :network_uri, :environment_name].each do |k|
+          key = "ecloud_#{k}".to_sym
+          if Fog.credentials[key]
+            hash[k]= Fog.credentials[key]
+          end
+        end
+      end,
+      :mocked => true,
     },
     :cloudstack => {
       :provider_attributes => {
         :cloudstack_host => 'http://host.foo'
       },
       :server_attributes => {}.tap do |hash|
-        [:zone_id, :network_ids, :image_id, :flavor_id].each do |k|
-          hash[k]= Fog.credentials[:cloudstack] && Fog.credentials[:cloudstack][k]
+        [:zone_id, :network_ids, :template_id, :service_offering_id].each do |k|
+          key = "cloudstack_#{k}".to_sym
+          if Fog.credentials[key]
+            hash[k]= Fog.credentials[key]
+          end
         end
       end,
       :volume_attributes => {:name => "somevolume"}.tap do |hash|
         [:zone_id, :disk_offering_id].each do |k|
-          hash[k]= Fog.credentials[:cloudstack] && Fog.credentials[:cloudstack][k]
+          key = "cloudstack_#{k}".to_sym
+          if Fog.credentials[key]
+            hash[k]= Fog.credentials[key]
+          end
         end
       end,
+      :security_group_attributes => {:name => "cloudstack.sg.#{Time.now.to_i}"},
+      :security_group_rule_attributes => {
+        :cidr => '0.0.0.0/0',
+        :start_port => 123,
+        :end_port => 456,
+        :protocol => 'tcp'
+      },
       :mocked => true
     },
     :glesys   => {
       :server_attributes => {
         :rootpassword  => "secret_password_#{Time.now.to_i}",
-        :hostname      => "fog.example#{Time.now.to_i}.com"
+       :hostname      => "fog.example#{Time.now.to_i}.com"
       },
       :mocked => false
     },
@@ -65,10 +91,27 @@ def compute_providers
     :joyent => {
       :mocked => false
     },
+    :hp       => {
+      :server_attributes => {
+        :flavor_id => 100,
+        :image_id => 1242,
+        :name     => "fog_#{Time.now.to_i}"
+      },
+      :mocked => true
+    },
     :ninefold   => {
       :mocked => false
     },
+    :openstack => {
+      :mocked => true,
+      :server_attributes => {
+        :flavor_ref => 2,
+        :image_ref  => "0e09fbd6-43c5-448a-83e9-0d3d05f9747e",
+        :name       => "fog_#{Time.now.to_i}"
+      }
+    },
     :rackspace  => {
+      :provider_attributes => { :version => :v1 }, 
       :server_attributes => {
         :image_id => 49, # image 49 = Ubuntu 10.04 LTS (lucid)
         :name     => "fog_#{Time.now.to_i}"
